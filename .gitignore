@@ -1,0 +1,8 @@
+__pycache__/
+.*.swp
+*.pyc
+test.py
+metric.py
+*.mp4
+imgs
+pilot
