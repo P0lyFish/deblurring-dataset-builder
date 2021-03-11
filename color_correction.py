@@ -1,14 +1,12 @@
 from plantcv import plantcv as pcv
 import cv2
 import numpy as np
-from skimage.io import imread, imsave
-from skimage import exposure
-import glob
-from skimage.transform import match_histograms
+
+import utils
 
 
 class MyColorCorrection:
-    def __init__(self, source_img, target_img, mask=None, gamma=2.2):
+    def __init__(self, source_img, target_img, mask=None, gamma=1):
         self.gamma = gamma
 
         self.target_img = self.rgb2lin(target_img)
@@ -20,26 +18,25 @@ class MyColorCorrection:
 
         if mask is None:
             mask = np.ones((self.target_img.shape[0],
-                self.target_img.shape[1]))
+                            self.target_img.shape[1]))
 
-        selection = np.where(mask > 0)
         self.Pt = self.flatten_image(self.target_img, mask)
         self.Ps = self.flatten_image(self.source_img, mask)
         self.T = self.getTransformationMatrix(0.1)
 
     def getTransformationMatrix(self, lmbd):
         Ps, Pt = self.Ps, self.Pt
-        I = np.eye(4)
+        eye = np.eye(4)
 
-        return np.linalg.inv(Ps.transpose().dot(Ps) + lmbd *\
-                I).dot(Ps.transpose().dot(Pt))
+        return np.linalg.inv(Ps.transpose().dot(Ps) + lmbd *
+                             eye).dot(Ps.transpose().dot(Pt))
 
     def __call__(self, img):
         img_4c = np.ones((img.shape[0], img.shape[1], img.shape[2] + 1))
         img_4c[:, :, :3] = img
 
         img_lin = self.rgb2lin(img_4c)
-        img_lin_flat = self.flatten_image(img_4c, np.ones(img.shape[:2]))
+        img_lin_flat = self.flatten_image(img_lin, np.ones(img.shape[:2]))
         img_lin_flat_corrected = img_lin_flat.dot(self.T)
         img_corrected = self.lin2rgb(
             self.restore_image(img_lin_flat_corrected, img.shape)
@@ -75,8 +72,6 @@ class MyColorCorrection:
         return img
 
 
-
-
 if __name__ == '__main__':
     sharp_img, _, _ = pcv.readimage(
             filename="res/colorboard/sharp.png"
@@ -85,10 +80,10 @@ if __name__ == '__main__':
             filename="res/colorboard/blur.png"
     )
 
-    mask = np.zeros(shape=np.shape(sharp_img)[:2], dtype = np.uint8())
-    mask = create_mask(sharp_img, mask, 85, 115, 40, 42, 1, [23])
-    mask = create_mask(sharp_img, mask, 300, 113, 41, 42, 1, [22, 21, 20, 18,
-        17, 14])
+    mask = np.zeros(shape=np.shape(sharp_img)[:2], dtype=np.uint8())
+    mask = utils.create_mask(sharp_img, mask, 85, 115, 40, 42, 1, [23])
+    mask = utils.create_mask(sharp_img, mask, 300, 113, 41, 42, 1,
+                             [22, 21, 20, 18, 17, 14])
     mask = mask * 10
 
     solver = MyColorCorrection(blur_img, sharp_img, np.ones((480, 480)), 1)

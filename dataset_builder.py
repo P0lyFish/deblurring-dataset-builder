@@ -15,13 +15,19 @@ class DatasetBuilder:
             roi,
             homography_refs,
             chessboard_size,
-            color_correction_refs
+            color_correction_refs,
+            flip
     ):
+        # Flip the images of the left camera
+        self.flip = flip
+
         # crop center
         self.cropper = Cropper(roi)
 
         # geometric alignment using homography
         hom_src, hom_dst = homography_refs
+        if self.flip:
+            hom_src = cv2.flip(hom_src, 1)
         self.warper = Homography(hom_src, hom_dst, chessboard_size)
 
         # color correction
@@ -37,7 +43,8 @@ class DatasetBuilder:
         return self.warper(img)
 
     def correct_color(self, img):
-        return self.color_transformer(img)
+        return img
+        # return self.color_transformer(img)
 
     def build_one_video(
             self,
@@ -66,7 +73,10 @@ class DatasetBuilder:
             sharp_frame = cv2.imread(sharp_frame_path)
             blur_frame = cv2.imread(blur_frame_path)
 
-            sharp_frame_post = self.correct_color(self.warp(sharp_frame))
+            if self.flip:
+                sharp_frame_post = cv2.flip(sharp_frame, 1)
+            cv2.imwrite('f.png', sharp_frame_post)
+            sharp_frame_post = self.correct_color(self.warp(sharp_frame_post))
             sharp_frame_post = self.crop(sharp_frame_post)
             blur_frame_post = self.crop(blur_frame)
 
@@ -103,5 +113,4 @@ class DatasetBuilder:
         dataset = zip(sharp_video_paths, blur_video_paths)
 
         for idx, (sharp_video_path, blur_video_path) in enumerate(dataset):
-            self.build_one_video(sharp_video_path, blur_video_path,
-                                        dst, idx)
+            self.build_one_video(sharp_video_path, blur_video_path, dst, idx)

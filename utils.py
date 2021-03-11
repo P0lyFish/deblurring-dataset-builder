@@ -23,11 +23,11 @@ def flip(pattern):
         img = cv2.imread(img_path)
         img = cv2.flip(img, 1)
         cv2.imwrite(img_path, img)
-    
+
 
 def create_mask(img, mask, x_start, y_start, x_shift, y_shift, start_idx,
                 del_list):
-    dimensions = [20, 20] 
+    dimensions = [20, 20]
 
     chips = []
 
@@ -48,7 +48,7 @@ def create_mask(img, mask, x_start, y_start, x_shift, y_shift, start_idx,
         start_idx += 1
 
     mask = mask
-    return mask 
+    return mask
 
 
 def correct_color_plantcv(

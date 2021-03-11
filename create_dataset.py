@@ -36,6 +36,7 @@ if __name__ == '__main__':
                         help='blur video path pattern')
     parser.add_argument('--dest', action='store', type=str,
                         help='save path')
+    parser.add_argument('--flip', action='store_true')
 
     args = parser.parse_args()
 
@@ -47,7 +48,8 @@ if __name__ == '__main__':
             (cv2.imread(args.homo_src), cv2.imread(args.homo_dst)),
             (args.chessboard_h, args.chessboard_w),
             (cv2.imread(args.color_correct_src),
-                cv2.imread(args.color_correct_dst))
+                cv2.imread(args.color_correct_dst)),
+            args.flip
     )
 
     datasetBuilder.build(
