@@ -1,6 +1,7 @@
 from plantcv import plantcv as pcv
 import cv2
 from skimage.transform import match_histograms
+import glob
 
 
 class Cropper:

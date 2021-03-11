@@ -50,7 +50,8 @@ class Homography:
 
 if __name__ == '__main__':
     Homography.is_debugging = True
-    src = cv2.imread('imgs/new/clock/sharp/00000050.png')
-    dst = cv2.imread('imgs/new/clock/blur/00000050.png')
+    src = cv2.imread('datasets/pilot/sharp/checkerboards/01.png')
+    dst = cv2.imread('datasets/pilot/blur/checkerboards/02.png')
+    src = cv2.flip(src, 1)
     h = Homography(src, dst, (7, 7))
     cv2.imwrite('warped.png', h(src))
