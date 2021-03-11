@@ -26,15 +26,17 @@ class DatasetBuilder:
 
         # geometric alignment using homography
         hom_src, hom_dst = homography_refs
-        if self.flip:
-            hom_src = cv2.flip(hom_src, 1)
+        self.flip(hom_src)
         self.warper = Homography(hom_src, hom_dst, chessboard_size)
 
         # color correction
         cc_src, cc_dst = color_correction_refs
-        cc_src, cc_dst = self.crop(cc_src), self.crop(cc_dst)
+        self.flip(cc_src)
+
         cc_src = self.warp(cc_src)
-        self.color_transformer = MyColorCorrection(cc_src, cc_dst)
+        cc_src, cc_dst = self.crop(cc_src), self.crop(cc_dst)
+
+        self.color_transformer = MyColorCorrection(cc_dst, cc_src)
 
     def crop(self, img):
         return self.cropper(img)
@@ -43,8 +45,11 @@ class DatasetBuilder:
         return self.warper(img)
 
     def correct_color(self, img):
-        return img
-        # return self.color_transformer(img)
+        return self.color_transformer(img)
+
+    def flip(self, img):
+        if self.flip:
+            img = cv2.flip(img, 1)
 
     def build_one_video(
             self,
@@ -72,13 +77,10 @@ class DatasetBuilder:
                 enumerate(zip(sharp_frame_paths, blur_frame_paths)):
             sharp_frame = cv2.imread(sharp_frame_path)
             blur_frame = cv2.imread(blur_frame_path)
+            self.flip(sharp_frame)
 
-            if self.flip:
-                sharp_frame_post = cv2.flip(sharp_frame, 1)
-            cv2.imwrite('f.png', sharp_frame_post)
-            sharp_frame_post = self.correct_color(self.warp(sharp_frame_post))
-            sharp_frame_post = self.crop(sharp_frame_post)
-            blur_frame_post = self.crop(blur_frame)
+            sharp_frame_post = self.crop(self.warp(sharp_frame))
+            blur_frame_post = self.correct_color(self.crop(blur_frame))
 
             cv2.imwrite(
                 osp.join(sharp_dst, '{:08d}.png'.format(frame_idx)),
