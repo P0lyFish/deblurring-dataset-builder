@@ -18,42 +18,26 @@ if __name__ == '__main__':
     parser.add_argument('--crop_w', action='store',
                         help='width of the cropped center',
                         type=int, default=None)
-    parser.add_argument('--homo_src', action='store', type=str,
-                        help='homography source path')
-    parser.add_argument('--homo_dst', action='store', type=str,
-                        help='homography destination path')
     parser.add_argument('--chessboard_h', type=int, default=7,
                         help='chessboard height')
     parser.add_argument('--chessboard_w', type=int, default=7,
                         help='chessboard width')
-    parser.add_argument('--color_correct_src', action='store', type=str,
-                        help='homography source path')
-    parser.add_argument('--color_correct_dst', action='store', type=str,
-                        help='homography destination path')
-    parser.add_argument('--sharp_vid_pattern', action='store', type=str,
-                        help='sharp video path pattern')
-    parser.add_argument('--blur_vid_pattern', action='store', type=str,
-                        help='blur video path pattern')
-    parser.add_argument('--dest', action='store', type=str,
-                        help='save path')
+    parser.add_argument('--name', action='store', type=str,
+                        help='dataset name')
     parser.add_argument('--flip', action='store_true')
+    parser.add_argument('--fps_ratio', action='store', default=1)
 
     args = parser.parse_args()
 
     roi = (args.crop_x, args.crop_y, args.crop_h, args.crop_w)
     if (not roi[0]) or (not roi[1]) or (not roi[2]) or (not roi[3]):
         roi = None
-    datasetBuilder = DatasetBuilder(
-            roi,
-            (cv2.imread(args.homo_src), cv2.imread(args.homo_dst)),
-            (args.chessboard_h, args.chessboard_w),
-            (cv2.imread(args.color_correct_src),
-                cv2.imread(args.color_correct_dst)),
-            args.flip
-    )
 
-    datasetBuilder.build(
-            args.sharp_vid_pattern,
-            args.blur_vid_pattern,
-            args.dest
-    )
+    DatasetBuilder(
+            args.name,
+            roi,
+            (args.chessboard_h, args.chessboard_w),
+            args.flip,
+            args.fps_ratio
+    ).build()
+
